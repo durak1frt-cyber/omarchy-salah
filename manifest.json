@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "salah.prayer-times",
+  "name": "Salah",
+  "version": "0.3.12",
+  "author": "Salah contributors",
+  "description": "Prayer times, a live Earth clock, and gentle reminders",
+  "kinds": ["service", "bar-widget"],
+  "entryPoints": {"service": "Service.qml", "barWidget": "Widget.qml"},
+  "barWidget": {
+    "displayName": "Salah",
+    "description": "Mosque indicator, prayer schedule and reminders",
+    "category": "Time",
+    "allowMultiple": false,
+    "defaultSection": "center"
+  }
+}

@@ -1,0 +1,23 @@
+[
+  {
+    "repository": "cosinekitty/astronomy",
+    "revision": "865d3da7d8112bbc7911238052c6af4aaf877181",
+    "source": "source/python/astronomy/astronomy.py",
+    "path": "vendor/astronomy.py",
+    "sha256": "41248c7b1edbf9d11119528eef7455a6dc55abde9f1aab40d363015e956c1729"
+  },
+  {
+    "repository": "cosinekitty/astronomy",
+    "revision": "865d3da7d8112bbc7911238052c6af4aaf877181",
+    "source": "LICENSE",
+    "path": "vendor/ASTRONOMY-LICENSE",
+    "sha256": "a76df666a7db8a06f599d08e07c3ff74c4b250b50b49c43353af2bd5bb34604e"
+  },
+  {
+    "repository": "nvkelso/natural-earth-vector",
+    "revision": "ca96624a56bd078437bca8184e78163e5039ad19",
+    "source": "geojson/ne_110m_land.geojson",
+    "path": "vendor/ne_110m_land.geojson",
+    "sha256": "9e0729ee253ca7d7a5c4ae9395fb1902264c5377c52e224d13dd85010e2835d9"
+  }
+]

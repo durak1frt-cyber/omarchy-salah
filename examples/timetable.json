@@ -1,0 +1,14 @@
+{
+  "location": "Example only — synthetic times",
+  "timezone": "UTC",
+  "days": [
+    {
+      "date": "2026-09-09",
+      "timings": {"Fajr": "05:10", "Sunrise": "06:40", "Dhuhr": "12:50", "Asr": "16:20", "Maghrib": "19:00", "Isha": "20:30"}
+    },
+    {
+      "date": "2026-09-10",
+      "timings": {"Fajr": "05:11", "Sunrise": "06:41", "Dhuhr": "12:50", "Asr": "16:19", "Maghrib": "18:59", "Isha": "20:29"}
+    }
+  ]
+}
