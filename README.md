@@ -2,7 +2,7 @@
 
 A small, open-source prayer companion for the Omarchy desktop. A mosque in the bar helps you notice prayer time without taking over your screen.
 
-**Status: 0.3.12, public beta.** The plugin targets Omarchy 4's Quickshell plugin API. It has been developed against Omarchy 4.0.3. Other desktop shells are not supported yet.
+**Status: 0.3.13, public beta.** The plugin targets Omarchy 4's Quickshell plugin API. It has been developed against Omarchy 4.0.3. Other desktop shells are not supported yet.
 
 ![Salah Earth clock and prayer timeline, shown with a synthetic Istanbul timetable](preview.png)
 
@@ -135,6 +135,8 @@ python3 scripts/install.py --replace local.prayer-times
 ```
 
 The installer backs up the existing shell layout and any existing Salah installation. Replacing a widget changes its bar entry; it does not delete its source code or settings. Do not run the installer with sudo.
+
+Layout changes and rollback use atomic replacements with owner-only file permissions. The archive installer requires the Omarchy configuration directory to be a regular directory owned by the current user and not writable by other users or groups.
 
 Update a Git-installed copy with `omarchy plugin update salah.prayer-times`.
 See [release notes](CHANGELOG.md) for changes and known limitations.
