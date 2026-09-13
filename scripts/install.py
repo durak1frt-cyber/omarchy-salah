@@ -5,7 +5,9 @@ from datetime import datetime
 import json
 import os
 from pathlib import Path
+import secrets
 import shutil
+import stat
 import subprocess
 import tempfile
 
@@ -15,6 +17,69 @@ PLUGIN_ID = 'salah.prayer-times'
 
 def run(*args):
     return subprocess.run(args, check=True, text=True, capture_output=True).stdout.strip()
+
+
+def atomic_write(path, data):
+    """Replace a config file without opening its destination for writing."""
+    path = Path(path)
+    directory_fd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC)
+    temporary = None
+    temporary_fd = None
+
+    def verify_directory():
+        opened = os.fstat(directory_fd)
+        named = path.parent.stat(follow_symlinks=False)
+        if (not stat.S_ISDIR(opened.st_mode) or opened.st_uid != os.geteuid()
+                or opened.st_mode & 0o022 or not os.path.samestat(opened, named)):
+            raise RuntimeError('The shell configuration directory changed or is not owned and protected by this user.')
+
+    def verify_file(fd):
+        opened = os.fstat(fd)
+        named = os.stat(temporary, dir_fd=directory_fd, follow_symlinks=False)
+        if (not stat.S_ISREG(opened.st_mode) or opened.st_uid != os.geteuid()
+                or opened.st_nlink != 1 or stat.S_IMODE(opened.st_mode) != 0o600
+                or not os.path.samestat(opened, named)):
+            raise RuntimeError('The temporary shell configuration file changed or is unsafe.')
+
+    try:
+        verify_directory()
+        for _ in range(100):
+            candidate = f'.{path.name}.salah-{secrets.token_hex(16)}.tmp'
+            try:
+                temporary_fd = os.open(candidate,
+                                       os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC,
+                                       0o600, dir_fd=directory_fd)
+            except FileExistsError:
+                continue
+            temporary = candidate
+            break
+        else:
+            raise FileExistsError('Could not create an exclusive temporary shell configuration file.')
+
+        with os.fdopen(temporary_fd, 'wb') as stream:
+            temporary_fd = None  # The stream owns the descriptor from here.
+            verify_file(stream.fileno())
+            stream.write(data)
+            stream.flush()
+            os.fsync(stream.fileno())
+            verify_directory()
+            verify_file(stream.fileno())
+            # Both names are relative to the checked directory descriptor.
+            # Replacing a destination symlink replaces the link, not its target.
+            os.replace(temporary, path.name, src_dir_fd=directory_fd, dst_dir_fd=directory_fd)
+            temporary = None
+            os.fsync(directory_fd)
+    finally:
+        if temporary_fd is not None:
+            os.close(temporary_fd)
+        try:
+            if temporary is not None:
+                try:
+                    os.unlink(temporary, dir_fd=directory_fd)
+                except FileNotFoundError:
+                    pass
+        finally:
+            os.close(directory_fd)
 
 
 def main():
@@ -67,16 +132,14 @@ def main():
                     config['bar']['layout'][section]=output
                 if not replaced:
                     raise RuntimeError('The widget requested for replacement is not in the bar layout.')
-                temporary=shellfile.with_name('shell.json.salah-tmp')
-                temporary.write_text(json.dumps(config,indent=2)+'\n')
-                temporary.replace(shellfile)
+                atomic_write(shellfile,(json.dumps(config,indent=2)+'\n').encode('utf-8'))
                 run('omarchy-shell','shell','reloadConfig')
             else:
                 run('omarchy','plugin','enable',PLUGIN_ID)
         except Exception:
             if destination.exists(): shutil.rmtree(destination)
             if had_plugin: shutil.copytree(backups/'plugin',destination)
-            shellfile.write_bytes(old_shell)
+            atomic_write(shellfile,old_shell)
             subprocess.run(['omarchy-shell','shell','rescanPlugins'],capture_output=True)
             subprocess.run(['omarchy-shell','shell','reloadConfig'],capture_output=True)
             raise

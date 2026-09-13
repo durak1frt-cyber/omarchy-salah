@@ -1,5 +1,15 @@
 # Release notes
 
+## 0.3.13 — Installer security correction
+
+The optional source-archive installer previously wrote the `--replace` layout through a predictable temporary pathname. A pre-existing symbolic link at that path could redirect the write into another user-writable file. Its rollback also followed a symbolic link at `shell.json`.
+
+- Both writes now use the same atomic transaction: a random same-directory temporary file opened exclusively with no-follow semantics, checked file and directory descriptors, file flush/fsync, descriptor-relative replacement, and directory fsync.
+- The installer rejects a symlinked, foreign-owned, or group/world-writable destination directory. Replacement configuration files are owner-readable/writable only (`0600`).
+- Ten installer regression tests cover the two reported paths, temporary-name collisions, hard links, directory/file substitution, failure cleanup, and durability ordering. These run in temporary fixtures without changing the desktop.
+
+Reported during the [Omarchy marketplace review](https://github.com/omacom/omarchy-plugin-marketplace/issues/6083#issuecomment-5654851752). The prayer-time UI and reminder behaviour are unchanged.
+
 ## 0.3.12 — First public beta
 
 Salah brings prayer times, a live Earth clock, and optional reminders to Omarchy 4.
